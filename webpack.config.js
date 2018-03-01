@@ -1,22 +1,24 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.js',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'public')
+    path: path.resolve(__dirname, 'dist')
   },
   devServer: {
     open: true,
     hot: true,
     inline: true,
-    contentBase: path.join(__dirname, 'public'),
+    contentBase: path.join(__dirname, 'dist'),
     port: 3333,
     historyApiFallback: true,
     proxy: {
-      "/api": 'http://localhost:3001'
+      "/api": 'http://localhost:3001',
+      "/": 'http://localhost:3001'
     }
   },
   module: {
@@ -32,13 +34,13 @@ module.exports = {
           },
           {
             loader: "sass-loader" // compiles Sass to CSS
-          },
-          {
-            loader: 'sass-resources-loader',
-            options: {
-              // Provide path to the file with resources
-              resources: './src/global.scss',
-            },
+          // },
+          // {
+          //   loader: 'sass-resources-loader',
+          //   options: {
+          //     // Provide path to the file with resources
+          //     resources: './src/global.scss',
+          //   },
           }
         ]
       },
@@ -54,7 +56,8 @@ module.exports = {
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, "src/template.html")
-    })
+      template: path.resolve(__dirname, "public/template.html")
+    }),
+    new CopyWebpackPlugin([{from: 'public'}])
   ]
 };

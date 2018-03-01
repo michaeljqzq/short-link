@@ -1,7 +1,7 @@
 import * as db from './db';
 
 // db.insertItemAsync({
-//   key: 'abc',
+//   keyw: 'abc',
 //   data: 'http://google3.com',
 //   type: 'link'
 // }).then(()=>{
@@ -11,7 +11,7 @@ import * as db from './db';
 // })
 
 // db.updateItemAsync('abc',{
-//   key: 'abc',
+//   keyw: 'abc',
 //   data: 'http://google3.com',
 //   type: 'link'
 // }).then(()=>{

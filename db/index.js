@@ -29,9 +29,67 @@ process.on('SIGINT', function () {
   });
 });
 
-async function getItemAsync(key) {
+async function getItemsAsync(from, n, type, search) {
   return new Promise((resolve, reject) => {
-    Item.findOne({ key }, (err, res) => {
+    let condition = {};
+    if (search) {
+      condition['$or'] = [
+        {
+          keyw: new RegExp(search, "i")
+        },
+        {
+          data: new RegExp(search, "i")
+        }
+      ];
+    }
+    if (type) {
+      condition.type = type;
+    }
+    Item.find(condition, null, {
+      skip: from, // Starting Row
+      limit: n, // Ending Row
+      sort: {
+        lastUpdateDate: -1 //Sort by Date Added DESC
+      }
+    }, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    });
+  });
+}
+
+async function getTotalNumbers(type, search) {
+  return new Promise((resolve, reject) => {
+    let condition = {};
+    if (search) {
+      condition['$or'] = [
+        {
+          keyw: new RegExp(search, "i")
+        },
+        {
+          data: new RegExp(search, "i")
+        }
+      ];
+    }
+    if (type) {
+      condition.type = type;
+    }
+    Item.count(condition, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    });
+  });
+}
+
+async function getItemAsync(keyw) {
+  return new Promise((resolve, reject) => {
+    Item.findOne({ keyw }, (err, res) => {
       if (err) {
         reject(err);
       } else {
@@ -54,13 +112,13 @@ async function insertItemAsync(item) {
   });
 }
 
-async function updateItemAsync(key, item) {
+async function updateItemAsync(keyw, item) {
   item.lastUpdateDate = new Date();
-  if(item.key) {
-    delete item.key;
+  if (item.keyw) {
+    delete item.keyw;
   }
   return new Promise((resolve, reject) => {
-    Item.update({key}, item, (err, results) => {
+    Item.update({ keyw }, item, (err, results) => {
       if (err) {
         reject(err);
       } else {
@@ -70,9 +128,9 @@ async function updateItemAsync(key, item) {
   });
 }
 
-async function deleteItemAsync(key) {
+async function deleteItemAsync(keyw) {
   return new Promise((resolve, reject) => {
-    Item.remove({ key }, (err, res) => {
+    Item.remove({ keyw }, (err, res) => {
       if (err) {
         reject(err);
       } else {
@@ -83,6 +141,8 @@ async function deleteItemAsync(key) {
 }
 
 export {
+  getItemsAsync,
+  getTotalNumbers,
   getItemAsync,
   insertItemAsync,
   updateItemAsync,
