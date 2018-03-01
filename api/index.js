@@ -3,15 +3,18 @@ import bodyParser from 'body-parser';
 import cfg from '../util';
 import * as db from '../db';
 import constant from '../constant';
+import multer from 'multer';
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser());
+let upload = multer({ dest: cfg.uploadFoler + '/' })
 
 // app.get('/' + cfg.manageModule, (req, res) => {
 
 // });
 
 app.get('/api', async (req, res) => {
+  console.log('in get api');
   let firstQuery = req.query.page === undefined;
   let page = req.query.page || 0;
   let type = req.query.type;
@@ -30,8 +33,10 @@ app.get('/api', async (req, res) => {
       returnResult.total = await totalNumber;
     }
     res.json(returnResult);
+    console.log('success get api');
     return;
   } catch (e) {
+    console.log('error get api');
     res.json({
       success: false,
       error: e.message
@@ -47,13 +52,13 @@ app.get('/api/:keyw', async (req, res) => {
     res.status(404).send('Short link not found');
     return;
   }
-  console.log(result);
 });
 
-app.post('/api/:keyw', async (req, res) => {
+app.post('/api/:keyw', upload.single(), async (req, res) => {
   let keyw = req.params.keyw;
   let item = req.body;
   console.log(item)
+  console.log(req.file);
   let result = await db.getItemAsync(keyw);
   if (!result) {
     item.keyw = keyw;
@@ -107,6 +112,7 @@ app.get('/:keyword', async (req, res) => {
     let result = await db.getItemAsync(req.params.keyword);
     if (!result) {
       res.status(404).send('Short link not found');
+      return;
     }
     if (result.type === 'link') {
       res.redirect(result.data);
@@ -115,6 +121,7 @@ app.get('/:keyword', async (req, res) => {
     }
   } catch (e) {
     res.status(404).send(e.message);
+    return;
   }
 });
 

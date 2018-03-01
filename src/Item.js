@@ -25,6 +25,7 @@ class Item extends Component {
         <span className="col-keyw">{this.state.keyw}</span>
         <span className="col-type">{this.state.type}</span>
         <span className="col-data">{this.state.data}</span>
+        <span className="col-delete" onClick={this.props.deleteItem.bind(null, this.state.keyw)}>Delete</span>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 let config = {
-  types: ['link', 'image', 'file'],
+  types: ['link', 'file'],
   itemsPerPage: 10,
 }
 

@@ -5,6 +5,9 @@ import Item from './Item';
 import constant from '../constant';
 import { Notification } from 'react-notification';
 import ReactPaginate from 'react-paginate';
+import Dropzone from 'react-dropzone';
+
+const DEFAULT_TYPE = '-- All --';
 
 class App extends Component {
   constructor(props) {
@@ -17,6 +20,8 @@ class App extends Component {
       notificationActive: false,
       notificationMessage: '',
       numOfPages: 0,
+      filterType: DEFAULT_TYPE,
+      filterSearch: '',
     }
   }
 
@@ -29,7 +34,7 @@ class App extends Component {
         } else {
           this.setState({
             items: data.data,
-            numOfPages: (data.total - 1) / constant.itemsPerPage + 1,
+            numOfPages: Math.ceil(data.total / constant.itemsPerPage),
           });
         }
       });
@@ -38,7 +43,7 @@ class App extends Component {
   fetchItemsFromServer = (page, type, search) => {
     let condition = {};
     if (page) condition.page = page;
-    if (type) condition.type = type;
+    if (type && type !== DEFAULT_TYPE) condition.type = type;
     if (search) condition.search = search;
     return fetch('/api?' + queryString.stringify(condition));
   }
@@ -61,16 +66,66 @@ class App extends Component {
     });
   }
 
+  onFilterSearchChange = (event) => {
+    this.setState({
+      filterSearch: event.target.value
+    });
+  }
+
+  onSearchEnterPressed = (event) => {
+    if (event.charCode === 13) {
+      this.fetchItemsFromServer(0, this.state.filterType, this.state.filterSearch)
+        .then(results => results.json())
+        .then((data) => {
+          if (!data.success) {
+            console.error('fetch data error, ' + data.error);
+          } else {
+            this.setState({
+              items: data.data,
+              numOfPages: Math.ceil(data.total / constant.itemsPerPage),
+            });
+          }
+        });
+    }
+  }
+
+  onFilterTypeChange = (event) => {
+    this.setState({
+      filterType: event.target.value
+    }, () => {
+      this.fetchItemsFromServer(0, this.state.filterType, this.state.filterSearch)
+        .then(results => results.json())
+        .then((data) => {
+          if (!data.success) {
+            console.error('fetch data error, ' + data.error);
+          } else {
+            this.setState({
+              items: data.data,
+              numOfPages: Math.ceil(data.total / constant.itemsPerPage),
+            });
+          }
+        });
+    });
+  }
+
   onSubmit = () => {
     let headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    fetch('/api/' + encodeURIComponent(this.state.keyw), {
-      method: 'POST',
-      body: JSON.stringify({
+    let body;
+    if (this.state.type === 'link') {
+      headers.append('Content-Type', 'application/json');
+      body = JSON.stringify({
         keyw: this.state.keyw,
         type: this.state.type,
         data: this.state.data
-      }),
+      });
+    } else if (this.state.type === 'file') {
+      // headers.append('Content-Type', 'multipart/form-data');
+      body = this.state.data;
+    }
+
+    fetch('/api/' + encodeURIComponent(this.state.keyw), {
+      method: 'POST',
+      body,
       headers: headers,
     }).then(results => results.json()).then((data) => {
       if (data.success) {
@@ -101,7 +156,7 @@ class App extends Component {
 
   handlePageClick = (data) => {
     let targetPage = data.selected;
-    this.fetchItemsFromServer(targetPage, this.state.type, this.state.search)
+    this.fetchItemsFromServer(targetPage, this.state.filterType, this.state.filterSearch)
       .then(results => results.json())
       .then((data) => {
         if (!data.success) {
@@ -114,11 +169,35 @@ class App extends Component {
       });
   }
 
+  deleteItem = (keyw) => {
+    fetch('/api/' + encodeURIComponent(keyw), {
+      method: 'DELETE',
+    }).then(results => results.json()).then((data) => {
+      if (data.success) {
+        this.showNotification('Delete success', 3000);
+      } else {
+        console.error(data.error);
+      }
+    });
+  }
+
+  onDrop = (files) => {
+    this.setState({
+      data: files[0]
+    });
+  }
+
   render() {
     let dataInput;
     if (this.state.type === 'link') {
       dataInput = <input placeholder="url" value={this.state.data} onChange={this.onDataChange} />;
+    } else if (this.state.type === 'file') {
+      dataInput = <Dropzone onDrop={this.onDrop}>
+        <p>{this.state.data ? this.state.data.name : 'Drag & Drop.'}</p>
+      </Dropzone>
     }
+    let filterTypes = constant.types.slice();
+    filterTypes.unshift(DEFAULT_TYPE);
     return (
       <div className="main">
         <div className="title">Management</div>
@@ -133,7 +212,16 @@ class App extends Component {
           <button className="submit" onClick={this.onSubmit}>Submit</button>
         </div>
 
-        {this.state.items.map(item => <Item key={item.keyw} {...item} />)}
+        <div className="filter">
+          <select value={this.state.filterType} onChange={this.onFilterTypeChange}>
+            {
+              filterTypes.map(t => <option key={t} value={t}>{t}</option>)
+            }
+          </select>
+          <input placeholder="search" value={this.state.filterSearch} onChange={this.onFilterSearchChange} onKeyPress={this.onSearchEnterPressed} />
+        </div>
+
+        {this.state.items.map(item => <Item key={item.keyw} deleteItem={this.deleteItem} {...item} />)}
         <ReactPaginate
           breakLabel={<a href="">...</a>}
           breakClassName={"break-me"}
