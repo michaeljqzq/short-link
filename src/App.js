@@ -120,7 +120,10 @@ class App extends Component {
       });
     } else if (this.state.type === 'file') {
       // headers.append('Content-Type', 'multipart/form-data');
-      body = this.state.data;
+      let form = new FormData();
+      form.append('file', this.state.data);
+      form.append('type', this.state.type);
+      body = form;
     }
 
     fetch('/api/' + encodeURIComponent(this.state.keyw), {
@@ -192,7 +195,8 @@ class App extends Component {
     if (this.state.type === 'link') {
       dataInput = <input placeholder="url" value={this.state.data} onChange={this.onDataChange} />;
     } else if (this.state.type === 'file') {
-      dataInput = <Dropzone onDrop={this.onDrop}>
+      dataInput = <Dropzone onDrop={this.onDrop}
+        multiple={false} >
         <p>{this.state.data ? this.state.data.name : 'Drag & Drop.'}</p>
       </Dropzone>
     }

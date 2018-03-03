@@ -1,5 +1,6 @@
 {
   "db": "mongodb://localhost:27017/sl",
   "apiPort": 3001,
-  "manageUrl": "c"
+  "manageUrl": "c",
+  "uploadFoler": "upload"
 }

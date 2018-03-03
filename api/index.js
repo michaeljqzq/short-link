@@ -4,6 +4,7 @@ import cfg from '../util';
 import * as db from '../db';
 import constant from '../constant';
 import multer from 'multer';
+import path from 'path';
 
 const app = express();
 app.use(bodyParser());
@@ -14,7 +15,7 @@ let upload = multer({ dest: cfg.uploadFoler + '/' })
 // });
 
 app.get('/api', async (req, res) => {
-  console.log('in get api');
+  // console.log('in get api');
   let firstQuery = req.query.page === undefined;
   let page = req.query.page || 0;
   let type = req.query.type;
@@ -33,10 +34,10 @@ app.get('/api', async (req, res) => {
       returnResult.total = await totalNumber;
     }
     res.json(returnResult);
-    console.log('success get api');
+    // console.log('success get api');
     return;
   } catch (e) {
-    console.log('error get api');
+    // console.log('error get api');
     res.json({
       success: false,
       error: e.message
@@ -54,11 +55,14 @@ app.get('/api/:keyw', async (req, res) => {
   }
 });
 
-app.post('/api/:keyw', upload.single(), async (req, res) => {
+app.post('/api/:keyw', upload.single('file'), async (req, res) => {
   let keyw = req.params.keyw;
   let item = req.body;
   console.log(item)
   console.log(req.file);
+  if(!item.data && req.file) {
+    item.file = req.file;
+  }
   let result = await db.getItemAsync(keyw);
   if (!result) {
     item.keyw = keyw;
@@ -116,6 +120,12 @@ app.get('/:keyword', async (req, res) => {
     }
     if (result.type === 'link') {
       res.redirect(result.data);
+      res.end();
+      return;
+    }else if (result.type === 'file') {
+      console.log(path.resolve(__dirname, result.file.path))
+      console.log(require('fs').existsSync(path.resolve(__dirname, result.file.path)));
+      res.sendFile(path.resolve(__dirname, result.file.path));
       res.end();
       return;
     }
