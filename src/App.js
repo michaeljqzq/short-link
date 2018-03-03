@@ -193,9 +193,9 @@ class App extends Component {
   render() {
     let dataInput;
     if (this.state.type === 'link') {
-      dataInput = <input placeholder="url" value={this.state.data} onChange={this.onDataChange} />;
+      dataInput = <input className="new-url" placeholder="url" value={this.state.data} onChange={this.onDataChange} />;
     } else if (this.state.type === 'file') {
-      dataInput = <Dropzone onDrop={this.onDrop}
+      dataInput = <Dropzone className="new-file" onDrop={this.onDrop}
         multiple={false} >
         <p>{this.state.data ? this.state.data.name : 'Drag & Drop.'}</p>
       </Dropzone>
@@ -204,28 +204,42 @@ class App extends Component {
     filterTypes.unshift(DEFAULT_TYPE);
     return (
       <div className="main">
-        <div className="title">Management</div>
-        <div className="new-item">
-          <input placeholder="keyw" value={this.state.keyw} onChange={this.onKeyChange} />
-          <select value={this.state.type} onChange={this.onTypeChange}>
+        <div className="title">MJ's short link</div>
+        <h3>Add/Update</h3>
+        <div className="new-item module">
+          <input className="new-key" placeholder="Keyword" value={this.state.keyw} onChange={this.onKeyChange} />
+          <select className="new-type" value={this.state.type} onChange={this.onTypeChange}>
             {
               constant.types.map(t => <option key={t} value={t}>{t}</option>)
             }
           </select>
+
           {dataInput}
-          <button className="submit" onClick={this.onSubmit}>Submit</button>
+          <button className="new-submit button" onClick={this.onSubmit}>Submit</button>
         </div>
 
-        <div className="filter">
-          <select value={this.state.filterType} onChange={this.onFilterTypeChange}>
+        <h3>Query Filter</h3>
+
+        <div className="filter module">
+          <select className="filter-type" value={this.state.filterType} onChange={this.onFilterTypeChange}>
             {
               filterTypes.map(t => <option key={t} value={t}>{t}</option>)
             }
           </select>
-          <input placeholder="search" value={this.state.filterSearch} onChange={this.onFilterSearchChange} onKeyPress={this.onSearchEnterPressed} />
+          <input className="filter-search" placeholder="search" value={this.state.filterSearch} onChange={this.onFilterSearchChange} onKeyPress={this.onSearchEnterPressed} />
         </div>
 
-        {this.state.items.map(item => <Item key={item.keyw} deleteItem={this.deleteItem} {...item} />)}
+        <div className="result">
+          <div className="item module llabel">
+            <span className="col-key">Keyword</span>
+            <span className="col-type">Type</span>
+            <span className="col-data">Data</span>
+            <span className="col-delete">Operation</span>
+          </div>
+          {this.state.items.map(item => <Item key={item.keyw} deleteItem={this.deleteItem} {...item} />)}
+        </div>
+
+
         <ReactPaginate
           breakLabel={<a href="">...</a>}
           breakClassName={"break-me"}

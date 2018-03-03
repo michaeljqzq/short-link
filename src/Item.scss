@@ -1,0 +1,21 @@
+$main-color: #ffb7be;
+.item {
+    font-weight: 300;
+    &>* {
+        border-color: #cccccc !important;
+        border-bottom-width: 1px !important;
+     }
+    .col-key {
+        flex: 0.5 1 200px;
+    }
+    .col-type {
+        flex: 0 1 100px;
+    }
+    .col-data {
+        flex: 1 1 400px;
+    }
+    .col-delete {
+        flex: 0.5 1 100px;
+        align-self: center;
+    }
+}

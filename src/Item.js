@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-// import './App.scss';
+import './Item.scss';
 
 class Item extends Component {
   constructor(props) {
@@ -21,11 +21,11 @@ class Item extends Component {
 
   render() {
     return (
-      <div className="item">
-        <span className="col-keyw">{this.state.keyw}</span>
+      <div className="module item">
+        <span className="col-key">{this.state.keyw}</span>
         <span className="col-type">{this.state.type}</span>
         <span className="col-data">{this.state.data}</span>
-        <span className="col-delete" onClick={this.props.deleteItem.bind(null, this.state.keyw)}>Delete</span>
+        <span className="col-delete button" onClick={this.props.deleteItem.bind(null, this.state.keyw)}>Delete</span>
       </div>
     );
   }
