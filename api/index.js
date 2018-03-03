@@ -8,7 +8,7 @@ import path from 'path';
 
 const app = express();
 app.use(bodyParser());
-let upload = multer({ dest: cfg.uploadFoler + '/' })
+let upload = multer({ dest: cfg.uploadFoler })
 
 // app.get('/' + cfg.manageModule, (req, res) => {
 
@@ -123,10 +123,10 @@ app.get('/:keyword', async (req, res) => {
       res.end();
       return;
     }else if (result.type === 'file') {
-      console.log(path.resolve(__dirname, result.file.path))
-      console.log(require('fs').existsSync(path.resolve(__dirname, result.file.path)));
-      res.sendFile(path.resolve(__dirname, result.file.path));
-      res.end();
+      // console.log(path.resolve(__dirname, result.file.path))
+      // console.log(require('fs').existsSync(path.resolve(__dirname, result.file.path)));
+      res.download(result.file.path, result.file.originalname);
+      // res.end();
       return;
     }
   } catch (e) {

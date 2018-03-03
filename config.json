@@ -2,5 +2,5 @@
   "db": "mongodb://localhost:27017/sl",
   "apiPort": 3001,
   "manageUrl": "c",
-  "uploadFoler": "upload"
+  "uploadFoler": "C:\\Users\\MichaelJ\\workspace\\short-link\\newupload"
 }
