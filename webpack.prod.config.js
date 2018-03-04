@@ -7,7 +7,7 @@ const nodeExternals = require('webpack-node-externals');
 module.exports = [{
   entry: './src/index.js',
   output: {
-    filename: 'bundle.js',
+    filename: 'mjstatic.bundle.js',
     path: path.resolve(__dirname, 'dist')
   },
   module: {
