@@ -1,5 +1,5 @@
 import fs from 'fs';
 
-let configs = fs.readFileSync(__dirname + '/config.json');
+let configs = fs.readFileSync('./config.json');
 
 export default JSON.parse(configs);
