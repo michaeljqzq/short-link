@@ -53,6 +53,10 @@ module.exports = [{
 // API
 {
   target: 'node',
+  node: {
+    __dirname: false, // Add this to prevent set __dirname as / in linux
+    __filename: false,
+  },
   externals: [nodeExternals()],
   entry: ['babel-polyfill', './api/index.js'],
   output: {
