@@ -5,16 +5,26 @@ import * as db from '../db';
 import constant from '../constant';
 import multer from 'multer';
 import path from 'path';
+import auth from 'basic-auth';
 
 const app = express();
 app.use(bodyParser());
 let upload = multer({ dest: cfg.uploadFoler })
 
-// app.get('/' + cfg.manageModule, (req, res) => {
+function checkAuth(req, res, next) {
+  if (!cfg.debug) {
+    let credentials = auth(req);
+    if (!credentials || credentials.name !== cfg.username || credentials.pass !== cfg.password) {
+      res.statusCode = 401
+      res.setHeader('WWW-Authenticate', 'Basic realm="example"')
+      res.end('Access denied');
+      return;
+    }
+  }
+  next();
+}
 
-// });
-
-app.get('/api', async (req, res) => {
+app.get('/api', checkAuth, async (req, res) => {
   // console.log('in get api');
   let firstQuery = req.query.page === undefined;
   let page = req.query.page || 0;
@@ -54,7 +64,7 @@ app.get('/api', async (req, res) => {
   }
 });
 
-app.get('/api/:keyw', async (req, res) => {
+app.get('/api/:keyw', checkAuth, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.getItemAsync(keyw);
   if (!result) {
@@ -63,7 +73,7 @@ app.get('/api/:keyw', async (req, res) => {
   }
 });
 
-app.post('/api/:keyw', upload.single('file'), async (req, res) => {
+app.post('/api/:keyw', checkAuth, upload.single('file'), async (req, res) => {
   let keyw = req.params.keyw;
   let item = req.body;
   console.log(item)
@@ -104,7 +114,7 @@ app.post('/api/:keyw', upload.single('file'), async (req, res) => {
   }
 });
 
-app.delete('/api/:keyw', async (req, res) => {
+app.delete('/api/:keyw', checkAuth, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.deleteItemAsync(keyw);
   if (!result) {
