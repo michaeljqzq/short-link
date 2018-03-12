@@ -24,6 +24,7 @@ function checkAuth(req, res, next) {
   next();
 }
 
+
 app.get('/api', checkAuth, async (req, res) => {
   // console.log('in get api');
   let firstQuery = req.query.page === undefined;
@@ -128,6 +129,8 @@ app.delete('/api/:keyw', checkAuth, async (req, res) => {
     success: true
   });
 });
+
+app.use(express.static(path.resolve(__dirname, 'web')));
 
 app.get('/:keyword', async (req, res) => {
   try {
