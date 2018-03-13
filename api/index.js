@@ -5,27 +5,70 @@ import * as db from '../db';
 import constant from '../constant';
 import multer from 'multer';
 import path from 'path';
-import auth from 'basic-auth';
+// import auth from 'basic-auth';
+import passport from 'passport';
+import { Strategy } from 'passport-local';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
 
 const app = express();
 app.use(bodyParser());
-let upload = multer({ dest: cfg.uploadFoler })
 
-function checkAuth(req, res, next) {
-  if (!cfg.debug) {
-    let credentials = auth(req);
-    if (!credentials || credentials.name !== cfg.username || credentials.pass !== cfg.password) {
-      res.statusCode = 401
-      res.setHeader('WWW-Authenticate', 'Basic realm="example"')
-      res.end('Access denied');
-      return;
-    }
+let upload = multer({ dest: cfg.uploadFoler });
+
+app.use(cookieParser());
+app.use(session({ secret: cfg.session_secret, cookie: { maxAge: 60000 } }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new Strategy({
+  usernameField: 'email',
+  passwordField: 'password'
+}, (username, password, done) => {
+  if (username === cfg.username && password === cfg.password) {
+    return done(null, username);
+  } else {
+    return done(null, false);
   }
-  next();
+}));
+
+passport.serializeUser(function (user, done) {//保存user对象
+  done(null, user);//可以通过数据库方式操作
+});
+
+passport.deserializeUser(function (user, done) {//删除user对象
+  done(null, user);//可以通过数据库方式操作
+});
+
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated())
+    return next();
+
+  res.redirect('/');
 }
 
+function isApiLoggedIn(req, res, next) {
+  if (req.isAuthenticated())
+    return next();
 
-app.get('/api', checkAuth, async (req, res) => {
+  res.sendStatus(401);
+}
+
+// function basicAuth(req, res, next) {
+//   if (!cfg.debug) {
+//     let credentials = auth(req);
+//     if (!credentials || credentials.name !== cfg.username || credentials.pass !== cfg.password) {
+//       res.statusCode = 401
+//       res.setHeader('WWW-Authenticate', 'Basic realm="example"')
+//       res.end('Access denied');
+//       return;
+//     }
+//   }
+//   next();
+// }
+
+
+app.get('/api', isApiLoggedIn, async (req, res) => {
   // console.log('in get api');
   let firstQuery = req.query.page === undefined;
   let page = req.query.page || 0;
@@ -65,7 +108,7 @@ app.get('/api', checkAuth, async (req, res) => {
   }
 });
 
-app.get('/api/:keyw', checkAuth, async (req, res) => {
+app.get('/api/:keyw', isApiLoggedIn, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.getItemAsync(keyw);
   if (!result) {
@@ -74,7 +117,7 @@ app.get('/api/:keyw', checkAuth, async (req, res) => {
   }
 });
 
-app.post('/api/:keyw', checkAuth, upload.single('file'), async (req, res) => {
+app.post('/api/:keyw', isApiLoggedIn, upload.single('file'), async (req, res) => {
   let keyw = req.params.keyw;
   let item = req.body;
   console.log(item)
@@ -115,7 +158,7 @@ app.post('/api/:keyw', checkAuth, upload.single('file'), async (req, res) => {
   }
 });
 
-app.delete('/api/:keyw', checkAuth, async (req, res) => {
+app.delete('/api/:keyw', isApiLoggedIn, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.deleteItemAsync(keyw);
   if (!result) {
@@ -130,7 +173,7 @@ app.delete('/api/:keyw', checkAuth, async (req, res) => {
   });
 });
 
-app.use(express.static(path.resolve(__dirname, 'web')));
+app.use('/', isLoggedIn, express.static(path.resolve(__dirname, 'web')));
 
 app.get('/:keyword', async (req, res) => {
   try {
