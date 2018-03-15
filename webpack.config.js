@@ -18,11 +18,22 @@ module.exports = {
     historyApiFallback: true,
     proxy: {
       "/api": 'http://localhost:3001',
-      "/": 'http://localhost:3001'
+      "/apilogin": 'http://localhost:3001',
+      "/test?": 'http://localhost:3001',
     }
   },
   module: {
     rules: [
+      {
+        test: /\.js[x]?$/,
+        enforce: 'pre',
+        use: [{
+          loader: 'eslint-loader',
+          options: { fix: true }
+        }],
+        include: path.resolve(__dirname, './src/**/*.js'),
+        exclude: /node_modules/
+      },
       { test: /\.js$/, use: 'babel-loader' },
       {
         test: /\.scss$/, use: [
@@ -34,13 +45,13 @@ module.exports = {
           },
           {
             loader: "sass-loader" // compiles Sass to CSS
-          // },
-          // {
-          //   loader: 'sass-resources-loader',
-          //   options: {
-          //     // Provide path to the file with resources
-          //     resources: './src/global.scss',
-          //   },
+            // },
+            // {
+            //   loader: 'sass-resources-loader',
+            //   options: {
+            //     // Provide path to the file with resources
+            //     resources: './src/global.scss',
+            //   },
           }
         ]
       },
@@ -58,6 +69,6 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "public/template.html")
     }),
-    new CopyWebpackPlugin([{from: 'public'}])
+    new CopyWebpackPlugin([{ from: 'public' }])
   ]
 };

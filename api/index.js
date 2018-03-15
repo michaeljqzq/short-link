@@ -5,70 +5,51 @@ import * as db from '../db';
 import constant from '../constant';
 import multer from 'multer';
 import path from 'path';
-// import auth from 'basic-auth';
 import passport from 'passport';
-import { Strategy } from 'passport-local';
-import cookieParser from 'cookie-parser';
-import session from 'express-session';
+import passportJWT from 'passport-jwt';
+import jwt from 'jsonwebtoken';
 
 const app = express();
-app.use(bodyParser());
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
+app.use(bodyParser.json());
 
 let upload = multer({ dest: cfg.uploadFoler });
 
-app.use(cookieParser());
-app.use(session({ secret: cfg.session_secret, cookie: { maxAge: 60000 } }));
 app.use(passport.initialize());
-app.use(passport.session());
 
-passport.use(new Strategy({
-  usernameField: 'email',
-  passwordField: 'password'
-}, (username, password, done) => {
-  if (username === cfg.username && password === cfg.password) {
-    return done(null, username);
+let jwtOptions = {
+  jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: cfg.jwtSecret,
+}
+
+let jwtStrategy = new passportJWT.Strategy(jwtOptions, (jwt_payload, next) => {
+  if (jwt_payload.username === cfg.username) {
+    next(null, cfg.username);
   } else {
-    return done(null, false);
+    next(null, false);
   }
-}));
-
-passport.serializeUser(function (user, done) {//保存user对象
-  done(null, user);//可以通过数据库方式操作
 });
 
-passport.deserializeUser(function (user, done) {//删除user对象
-  done(null, user);//可以通过数据库方式操作
+passport.use(jwtStrategy);
+
+app.post(`/${constant.loginPath}`, (req, res) => {
+  let { username, password } = req.body;
+  console.log(username,password)
+  if(username === cfg.username && password === cfg.password) {
+    let token = jwt.sign({username}, jwtOptions.secretOrKey);
+    res.json({
+      token
+    });
+  }else {
+    res.status(401).end();
+  }
 });
 
-function isLoggedIn(req, res, next) {
-  if (req.isAuthenticated())
-    return next();
+let auth = passport.authenticate('jwt', {session:false});
 
-  res.redirect('/');
-}
-
-function isApiLoggedIn(req, res, next) {
-  if (req.isAuthenticated())
-    return next();
-
-  res.sendStatus(401);
-}
-
-// function basicAuth(req, res, next) {
-//   if (!cfg.debug) {
-//     let credentials = auth(req);
-//     if (!credentials || credentials.name !== cfg.username || credentials.pass !== cfg.password) {
-//       res.statusCode = 401
-//       res.setHeader('WWW-Authenticate', 'Basic realm="example"')
-//       res.end('Access denied');
-//       return;
-//     }
-//   }
-//   next();
-// }
-
-
-app.get('/api', isApiLoggedIn, async (req, res) => {
+app.get(`/${constant.apiPath}`, auth, async (req, res) => {
   // console.log('in get api');
   let firstQuery = req.query.page === undefined;
   let page = req.query.page || 0;
@@ -108,7 +89,7 @@ app.get('/api', isApiLoggedIn, async (req, res) => {
   }
 });
 
-app.get('/api/:keyw', isApiLoggedIn, async (req, res) => {
+app.get(`/${constant.apiPath}:keyw`, auth, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.getItemAsync(keyw);
   if (!result) {
@@ -117,7 +98,7 @@ app.get('/api/:keyw', isApiLoggedIn, async (req, res) => {
   }
 });
 
-app.post('/api/:keyw', isApiLoggedIn, upload.single('file'), async (req, res) => {
+app.post(`/${constant.apiPath}:keyw`, auth, upload.single('file'), async (req, res) => {
   let keyw = req.params.keyw;
   let item = req.body;
   console.log(item)
@@ -158,7 +139,7 @@ app.post('/api/:keyw', isApiLoggedIn, upload.single('file'), async (req, res) =>
   }
 });
 
-app.delete('/api/:keyw', isApiLoggedIn, async (req, res) => {
+app.delete(`/${constant.apiPath}:keyw`, auth, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.deleteItemAsync(keyw);
   if (!result) {
@@ -173,7 +154,10 @@ app.delete('/api/:keyw', isApiLoggedIn, async (req, res) => {
   });
 });
 
-app.use('/', isLoggedIn, express.static(path.resolve(__dirname, 'web')));
+app.use('/', express.static(path.resolve(__dirname, 'web')));
+app.get(`/${constant.reactLoginPath}`, (req,res)=>{
+  res.sendFile(path.resolve(__dirname, 'web', 'index.html'));
+})
 
 app.get('/:keyword', async (req, res) => {
   try {

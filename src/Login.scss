@@ -1,0 +1,22 @@
+$width: 300px;
+$height: 200px;
+.login {
+  position: fixed;
+  width: $width;
+  height: $height;
+  margin-left: $width * -0.5;
+  margin-top: $height * -0.5;
+  left: 50%;
+  top: 50%;
+
+  display: flex;
+  flex-flow: column;
+  justify-content: space-around;
+
+  input {
+    font-size: $height *0.25 / 2;
+    line-height: $height *0.25;
+    color: rgb(36, 182, 226);
+    border: 1.5px solid rgb(36, 182, 226);
+  }
+}
