@@ -1,10 +1,10 @@
 {
-  "db": "mongodb://localhost:27017/sl",
+  "db": "",
   "apiPort": 3001,
   "manageUrl": "",
-  "uploadFoler": "C:\\Users\\MichaelJ\\workspace\\short-link\\upload",
-  "username": "michaeljqzq",
-  "password": "michaeljqzq",
+  "uploadFoler": "",
+  "username": "",
+  "password": "",
   "debug": true,
-  "session_secret": "sl"
+  "jwtSecret": ""
 }
