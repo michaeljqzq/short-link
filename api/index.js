@@ -89,7 +89,7 @@ app.get(`/${constant.apiPath}`, auth, async (req, res) => {
   }
 });
 
-app.get(`/${constant.apiPath}:keyw`, auth, async (req, res) => {
+app.get(`/${constant.apiPath}/:keyw`, auth, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.getItemAsync(keyw);
   if (!result) {
@@ -98,7 +98,7 @@ app.get(`/${constant.apiPath}:keyw`, auth, async (req, res) => {
   }
 });
 
-app.post(`/${constant.apiPath}:keyw`, auth, upload.single('file'), async (req, res) => {
+app.post(`/${constant.apiPath}/:keyw`, auth, upload.single('file'), async (req, res) => {
   let keyw = req.params.keyw;
   let item = req.body;
   console.log(item)
@@ -139,7 +139,7 @@ app.post(`/${constant.apiPath}:keyw`, auth, upload.single('file'), async (req, r
   }
 });
 
-app.delete(`/${constant.apiPath}:keyw`, auth, async (req, res) => {
+app.delete(`/${constant.apiPath}/:keyw`, auth, async (req, res) => {
   let keyw = req.params.keyw;
   let result = await db.deleteItemAsync(keyw);
   if (!result) {
