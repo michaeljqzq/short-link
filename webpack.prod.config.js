@@ -77,9 +77,6 @@ module.exports = [{
     rules: [
       { test: /\.js$/, use: 'babel-loader' } // exclude: /(_project_config|_project_credential)\.js$/
     ]
-  },
-  plugins: [
-    new CopyWebpackPlugin(['config.json'])
-  ]
+  }
 },
 ];
